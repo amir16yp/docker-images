@@ -1,22 +1,38 @@
-FROM --platform=linux/amd64 debian:trixie-slim
-LABEL       author="Amir Y.P" maintainer="myrprhwdnyq@gmail.com"
+# Use Debian Trixie slim image
+FROM debian:trixie-slim
 
-LABEL       org.opencontainers.image.source="https://github.com/amir16yp/yolks"
-LABEL       org.opencontainers.image.licenses=MIT
+# Labels
+LABEL author="Amir Y.P" maintainer="myrprhwdnyq@gmail.com"
+LABEL org.opencontainers.image.source="https://github.com/amir16yp/yolks"
+LABEL org.opencontainers.image.licenses=MIT
 
-RUN         apt update && apt upgrade -y \
-				&& apt install -y gcc g++ libgcc1 libc++-dev gdb libc6 git wget curl tar zip unzip binutils xz-utils liblzo2-2 cabextract iproute2 net-tools netcat telnet libatomic1 libsdl1.2debian libsdl2-2.0-0 \
-    			libfontconfig libicu63 icu-devtools libunwind8 libssl-dev sqlite3 libsqlite3-dev libmariadbclient-dev libduktape203 locales ffmpeg gnupg2 apt-transport-https software-properties-common ca-certificates tzdata \
-    			liblua5.3 libz-dev rapidjson-dev \
-				&& update-locale lang=en_US.UTF-8 \
-				&& dpkg-reconfigure --frontend noninteractive locales \
-				&& useradd -m -d /home/container -s /bin/bash container
+# Set environment variables
+ENV DEBIAN_FRONTEND=noninteractive
+ENV USER=container
+ENV HOME=/home/container
 
-USER        container
-ENV         USER=container HOME=/home/container
-ENV         DEBIAN_FRONTEND noninteractive
+# Install necessary packages and create container user
+RUN apt update && apt upgrade -y \
+    && apt install -y \
+        gcc g++ libgcc1 libc++-dev gdb libc6 git wget curl tar zip unzip \
+        binutils xz-utils liblzo2-2 cabextract iproute2 net-tools \
+        netcat-openbsd telnet libatomic1 libsdl1.2debian libsdl2-2.0-0 \
+        libfontconfig1 libicu-dev icu-devtools libunwind8 libssl-dev \
+        sqlite3 libsqlite3-dev libmariadb-dev libmariadb-dev-compat \
+        libduktape-dev locales ffmpeg gnupg2 apt-transport-https \
+        ca-certificates tzdata liblua5.4-0 liblua5.4-dev libz-dev rapidjson-dev \
+    && update-locale LANG=en_US.UTF-8 \
+    && dpkg-reconfigure --frontend noninteractive locales \
+    && useradd -m -d /home/container -s /bin/bash container
 
-WORKDIR     /home/container
+# Switch to container user
+USER container
 
-COPY        ./entrypoint.sh /entrypoint.sh
-CMD         [ "/bin/bash", "/entrypoint.sh" ]
+# Set working directory
+WORKDIR /home/container
+
+# Copy entrypoint
+COPY ./entrypoint.sh /entrypoint.sh
+
+# Set default command
+CMD ["/bin/bash", "/entrypoint.sh"]
