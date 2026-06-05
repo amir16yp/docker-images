@@ -1,0 +1,67 @@
+name: Build and Push All Docker Images to GHCR
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up QEMU (multi-arch)
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Find Docker build folders
+        id: folders
+        run: |
+          echo "Scanning for Dockerfiles..."
+
+          folders=""
+          for dir in */ ; do
+            if [ -f "${dir}Dockerfile" ]; then
+              folders="$folders ${dir%/}"
+            fi
+          done
+
+          echo "Found folders: $folders"
+          echo "folders=$folders" >> $GITHUB_OUTPUT
+
+      - name: Build and push images
+        run: |
+          set -e
+
+          for folder in ${{ steps.folders.outputs.folders }}; do
+            echo "----------------------------------------"
+            echo "Building: $folder"
+
+            IMAGE="ghcr.io/${{ github.repository_owner }}/$folder"
+
+            docker buildx build \
+              --platform linux/amd64,linux/arm64 \
+              --tag $IMAGE:latest \
+              --tag $IMAGE:${{ github.sha }} \
+              --push \
+              ./$folder
+
+            echo "Pushed: $IMAGE:latest"
+          done
