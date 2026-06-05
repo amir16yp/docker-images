@@ -21,10 +21,10 @@ RUN apt update && apt upgrade -y \
         sqlite3 libsqlite3-dev libmariadb-dev libmariadb-dev-compat \
         locales ffmpeg gnupg2 apt-transport-https \
         ca-certificates tzdata liblua5.4-0 liblua5.4-dev libz-dev rapidjson-dev \
+    && sed -i 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen \
+    && locale-gen \
     && update-locale LANG=en_US.UTF-8 \
-    && dpkg-reconfigure --frontend noninteractive locales \
     && useradd -m -d /home/container -s /bin/bash container
-# Switch to container user
 USER container
 
 # Set working directory
