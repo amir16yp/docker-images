@@ -19,12 +19,11 @@ RUN apt update && apt upgrade -y \
         netcat-openbsd telnet libatomic1 libsdl1.2debian libsdl2-2.0-0 \
         libfontconfig1 libicu-dev icu-devtools libunwind8 libssl-dev \
         sqlite3 libsqlite3-dev libmariadb-dev libmariadb-dev-compat \
-        libduktape-dev locales ffmpeg gnupg2 apt-transport-https \
+        locales ffmpeg gnupg2 apt-transport-https \
         ca-certificates tzdata liblua5.4-0 liblua5.4-dev libz-dev rapidjson-dev \
     && update-locale LANG=en_US.UTF-8 \
     && dpkg-reconfigure --frontend noninteractive locales \
     && useradd -m -d /home/container -s /bin/bash container
-
 # Switch to container user
 USER container
 
